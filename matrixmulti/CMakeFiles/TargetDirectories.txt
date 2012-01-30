@@ -1,0 +1,2 @@
+/home/thiago/repositorios/testesopencl/matrixmulti/CMakeFiles/matrix.dir
+/home/thiago/repositorios/testesopencl/matrixmulti/CMakeFiles/matrixmulti.dir
