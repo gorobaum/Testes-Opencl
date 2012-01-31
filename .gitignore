@@ -1,7 +1,9 @@
 CMakeFile*
-CMakeCache
+CMakeCache*
 Makefile*
 cmake_*
 lib*
 *.*~
 *~
+*.swp
+
