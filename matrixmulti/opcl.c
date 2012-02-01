@@ -111,3 +111,10 @@ int opencl_create_program(char* program_path) {
   if ( err != CL_SUCCESS ) printf("Erro = %d\n",err);
   return buildProgram();
 }
+
+int opencl_create_kernel(char* kernel_name) {
+  cl_int err;
+  kernel = clCreateKernel( program, (const char*) kernel_name, &err);
+  if ( err == CL_SUCCESS ) return 1;
+  else return -1;
+}

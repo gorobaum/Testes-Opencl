@@ -44,5 +44,14 @@ int main() {
   else printf("Programa criado com sucesso!\n");
   printf("\n");
 
+  printf("Iniciando a criação do kernel...\n");
+  if ( opencl_create_kernel("matrixmulti") <= 0 ) {
+    printf("Erro na criação do kernel\n");
+    return -1;
+  }
+  else printf("kernel criado com sucesso!\n");
+  printf("\n");
+
+
   return 0;
 }

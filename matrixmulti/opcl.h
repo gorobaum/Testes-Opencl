@@ -11,5 +11,5 @@ unsigned int opencl_get_devices_id(cl_device_type device_type);
 int opencl_create_context();
 int opencl_create_queue();
 int opencl_create_program(char* program_path);
-void opencl_create_kernel();
+int opencl_create_kernel();
 
