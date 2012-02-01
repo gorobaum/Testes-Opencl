@@ -1,6 +1,6 @@
 __kernel void matrixmulti(__global int* a, __global int* b, __global int* c)
 {
     unsigned int i = get_global_id(0);
-    
-    c[i] = a[i]+b[i]; 
+    unsigned int j = get_global_id(1);
+    c[i+j*3] = b[i]*a[j*3]+b[i+3]*a[j*3+1]+b[i+6]*a[j*3+2];
 }

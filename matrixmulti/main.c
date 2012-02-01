@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include "opcl.h"
 
-int main() {
+int iniciar_opencl() {
   unsigned int num_platforms, num_devices;
 
+  printf("\n");
   printf("Iniciando a Camada de Plataforma do OpenCL...\n");
   if ( ( num_platforms =  opencl_create_platform(1)  ) <= 0 ) {
       printf("Erro na criação da camada de plataforma!\n");
@@ -52,6 +53,14 @@ int main() {
   else printf("kernel criado com sucesso!\n");
   printf("\n");
 
+  return 1;
+}
 
+int main() {
+  
+  if ( iniciar_opencl() == 1 ) {
+    printf("Platafoma do OpenCL criada com sucesso, iniciando a multiplicação das matrizes...\n");
+    opencl_run_kernel();
+  }
   return 0;
 }

@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-
+#define MS 3
 /* Objetos do Open CL */
 cl_platform_id platform;
 cl_context context;
@@ -10,6 +10,8 @@ cl_device_id* devices;
 cl_command_queue queue;
 cl_kernel kernel;
 cl_program program;
+cl_event event;
+cl_mem a, b, c;
 
 /* Informações sobre os devices */
 unsigned int devices_found;
@@ -118,3 +120,48 @@ int opencl_create_kernel(char* kernel_name) {
   if ( err == CL_SUCCESS ) return 1;
   else return -1;
 }
+
+void prepare_kernel() {
+  int Ma[MS][MS], Mb[MS][MS], i, j;
+
+  for ( i = 0; i < MS; i++ ) {
+    for ( j = 0; j < MS; j++ ) {
+      Ma[i][j] = i+j;
+      Mb[i][j] = 2;
+    }
+  }
+
+  /* Criação dos buffers que o OpenCL vai usar. */
+  a = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int)*MS*MS, Ma, NULL);
+  b = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int)*MS*MS, Mb, NULL);
+  c = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int)*MS*MS, NULL, NULL);
+
+  clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&a);
+  clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&b);
+  clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&c);
+
+  clFinish(queue);
+}
+int opencl_run_kernel() {
+  size_t work_dim[2] = { MS, MS };
+  int Mc[MS][MS], i, j;
+  
+  prepare_kernel();
+  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
+  clReleaseEvent(event);
+  clFinish(queue);
+
+  if( clEnqueueReadBuffer(queue, c, CL_TRUE, 0, sizeof(int)*MS*MS, &Mc, 0, NULL, &event) 
+      == CL_INVALID_VALUE ) printf("ERRROROOO\n");
+  clReleaseEvent(event);
+
+  for( i = 0; i < MS; i++ ) {
+    for( j = 0; j< MS; j++ ) {
+      printf("%d  ", Mc[i][j]);
+    }
+    printf("\n");
+  }
+
+  return 1;
+}
+
