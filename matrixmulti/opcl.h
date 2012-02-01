@@ -1,11 +1,15 @@
 #include "CL/opencl.h"
 
 
-unsigned int opencl_create_platform( unsigned int num_platforms);
-unsigned int opencl_get_devices_id(cl_device_type device_type, unsigned int num_devices);
+/* Flags para a criação do buffer */
+#define RW CL_MEM_READ_WRITE
+#define RO CL_MEM_READ_ONLY
+#define WO CL_MEM_WRITE_ONLY
+
+unsigned int opencl_create_platform(unsigned int num_platforms);
+unsigned int opencl_get_devices_id(cl_device_type device_type);
 int opencl_create_context();
+int opencl_create_queue();
+int opencl_create_program(char* program_path);
 void opencl_create_kernel();
-void opencl_create_buffer();
-void opencl_write_buffer();
-void opencl_read_buffer();
 
