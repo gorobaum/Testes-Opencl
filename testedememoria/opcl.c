@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 1000
+#define MATRIXSIZE 1000
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -12,7 +12,8 @@ cl_command_queue queue;
 cl_kernel kernel;
 cl_program program;
 cl_event event;
-cl_mem a, b, c;
+cl_mem opclMatrixA, opclMatrixB, opclMatrixC;
+
 
 /* Informações sobre os devices */
 unsigned int devices_found;
@@ -95,7 +96,7 @@ int buildProgram() {
   		build_log[ret_val_size] = '\0';
 
 	  	printf("BUILD LOG: \n %s", build_log);
-      printf("program built\n");
+      /*printf("program built\n");*/
       return -1;
     }
     else return 1;
@@ -123,39 +124,35 @@ int opencl_create_kernel(char* kernel_name) {
 }
 
 void prepare_kernel() {
-  int Ma[MS], i;
+  int MatrixA[MATRIXSIZE][MATRIXSIZE], i, j;
 
-  for ( i = 0; i < MS; i++ ) {
-      Ma[i] = i;
+  for ( i = 0; i < MATRIXSIZE; i++ ) {
+    for ( j = 0; j < MATRIXSIZE; j++ ) {
+      MatrixA[i][j] = i+j;
+    }
   }
-
   /* Criação dos buffers que o OpenCL vai usar. */
-  a = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int)*MS, Ma, NULL);
-  b = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int)*MS, NULL, NULL);
+  opclMatrixA = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int)*MATRIXSIZE*MATRIXSIZE, MatrixA, NULL);
+  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int)*MATRIXSIZE*MATRIXSIZE, NULL, NULL);
 
-  clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&a);
-  clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&b);
-
+  clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
+  clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
+  
   clFinish(queue);
 }
 
 int opencl_run_kernel() {
-  size_t work_dim[1] = { MS };
-  int Mb[MS], i;
+  size_t work_dim[2] = { MATRIXSIZE, MATRIXSIZE };
+  int MatrixB[MATRIXSIZE][MATRIXSIZE], i, j;
   
   prepare_kernel();
-  clEnqueueNDRangeKernel(queue, kernel, 1, NULL, work_dim, NULL, 0, NULL, &event);
+  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event); 
   clReleaseEvent(event);
   clFinish(queue);
-
-  if( clEnqueueReadBuffer(queue, b, CL_TRUE, 0, sizeof(int)*MS, &Mb, 0, NULL, &event) 
+  
+  if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(int)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
-
-  for( i = 0; i < MS; i++ ) {
-      printf("%d|", Mb[i]);
-  }
-  printf("\n");
 
   return 1;
 }
