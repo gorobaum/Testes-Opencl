@@ -6,7 +6,7 @@ int iniciar_opencl() {
 
   printf("\n");
   printf("Iniciando a Camada de Plataforma do OpenCL...\n");
-  if ( ( num_platforms =  opencl_create_platform(1)  ) <= 0 ) {
+  if ( ( num_platforms =  opencl_create_platform(2)  ) <= 0 ) {
       printf("Erro na criação da camada de plataforma!\n");
       return -1; 
   }

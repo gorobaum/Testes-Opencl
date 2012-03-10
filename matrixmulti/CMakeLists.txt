@@ -1,17 +1,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 project(matrixmulti)
 
-#SET(CMAKE_MODULE_PATH ${matrixmulti_SOURCE_PATH}/../findcl)
-
-#FIND_PACKAGE(OPENCL)
 
 find_library(OPENCL OpenCL)
 include_directories(${OPENCL}) 
-
 message("OpenCL Library == ${OPENCL}")
 
 INCLUDE_DIRECTORIES( 
-    ${matrixmulti_SOURCE_DIR}/../opencl10
+  "/usr/include/CL/"
 )
 
 message("include directories: \n")

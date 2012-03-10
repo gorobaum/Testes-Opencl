@@ -19,12 +19,14 @@ unsigned int device_used = 0;
 
 unsigned int opencl_create_platform(unsigned int num_platforms) {
   char name[MAXSTR];
-  unsigned int num_platforms_found;
+  int num_platforms_found;
   
+  clGetPlatformIDs( 0, NULL, &num_platforms_found);
+  printf("Num Plat == %d\n\n", num_platforms_found); 
   if ( clGetPlatformIDs( num_platforms, &platform, &num_platforms_found ) == CL_SUCCESS ) {
-    /* As duas linhas abaixo são usadas para teste.
+    /* As duas linhas abaixo são usadas para teste. */
     clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
-    printf("Nome da plataforma %s\n",name); */ 
+    printf("Nome da plataforma %s\n",name);  
     return num_platforms_found;
   }
   else return -1;
