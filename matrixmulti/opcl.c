@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 3 
+#define MS 500
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -163,12 +163,12 @@ int opencl_run_kernel() {
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
 
-  for( i = 0; i < MS; i++ ) {
+  /*for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("%d  ", Mc[i][j]);
     }
     printf("\n");
-  }
+  }*/
 
   return 1;
 }
