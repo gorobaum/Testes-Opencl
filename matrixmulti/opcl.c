@@ -59,7 +59,7 @@ int opencl_create_context() {
 }
 
 int opencl_create_queue() {
-  if ( ( queue = clCreateCommandQueue(context, devices[device_used], 0, NULL ) ) != NULL ) {
+  if ( ( queue = clCreateCommandQueue(context, devices[device_used], CL_QUEUE_PROFILING_ENABLE, NULL ) ) != NULL ) {
     return 1;
   }
   else return -1;
@@ -153,9 +153,17 @@ void prepare_kernel() {
 int opencl_run_kernel() {
   size_t work_dim[2] = { MS, MS };
   int Mc[MS][MS], i, j;
-  
+  cl_ulong start, end;
+  double total_time;
+
   prepare_kernel();
   clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
+  clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, 
+                                        sizeof(cl_ulong), (void*)&start, NULL);
+  clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, 
+                                        sizeof(cl_ulong), (void*)&end, NULL);
+  total_time = (end - start) * 1.0e-6f;
+  printf("Tempo de execução = %f\n", total_time);
   clReleaseEvent(event);
   clFinish(queue);
 
