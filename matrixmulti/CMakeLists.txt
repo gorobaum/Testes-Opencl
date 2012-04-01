@@ -3,12 +3,8 @@ project(matrixmulti)
 
 
 find_library(OPENCL OpenCL)
-include_directories(${OPENCL}) 
 message("OpenCL Library == ${OPENCL}")
 
-INCLUDE_DIRECTORIES( 
-  "/usr/include/CL/"
-)
 
 message("include directories: \n")
 get_directory_property(includes INCLUDE_DIRECTORIES)
