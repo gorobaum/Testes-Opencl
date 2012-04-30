@@ -103,6 +103,15 @@ int buildProgram() {
 }
 /* Fim das funções auxiliares para a criação do program */
 
+void profile_event (cl_event* profiler) {
+  cl_ulong start, finish;
+    
+  clWaitForEvents(1, &event);
+  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
+  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
+  printf("Tempo Total = %lfms\n", (finish-start)*NANO);
+}
+
 int opencl_create_program(char* program_path) {
   char* program_source;
   int size;
@@ -147,6 +156,7 @@ int opencl_run_kernel() {
   
   prepare_kernel();
   clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event); 
+  profile_event(&event);
   clReleaseEvent(event);
   clFinish(queue);
   
