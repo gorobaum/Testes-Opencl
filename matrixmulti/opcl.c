@@ -3,6 +3,7 @@
 
 #define MAXSTR 512
 #define MS 500
+#define NANO 1e9 
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -104,6 +105,18 @@ int buildProgram() {
 }
 /* Fim das funções auxiliares para a criação do program */
 
+void profile_event (cl_event* profiler) {
+  cl_ulong start, finish;
+  size_t nano_clocks;
+    
+  clGetDeviceInfo(devices[0], CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(size_t), &nano_clocks, NULL);
+  printf("Nano_clock = %ld\n", nano_clocks);
+  clWaitForEvents(1, &event);
+  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
+  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
+  printf("Tempo Total = %f\n", (finish-start)*NANO*nano_clocks);
+}
+
 int opencl_create_program(char* program_path) {
   char* program_source;
   int size;
@@ -142,7 +155,7 @@ void prepare_kernel() {
   opclMatrixB = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double)*MS*MS, MatrixB, NULL);
   opclMatrixC = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(double)*MS*MS, NULL, NULL);
   matrix_size = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), (&size), NULL);
-
+  
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
   clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&opclMatrixC);
@@ -163,8 +176,8 @@ int opencl_run_kernel() {
 
   if( clEnqueueReadBuffer(queue, opclMatrixC, CL_TRUE, 0, sizeof(double)*MS*MS, &Mc, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
+  profile_event(&event);
   clReleaseEvent(event);
-
   /*for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("%d  ", Mc[i][j]);
