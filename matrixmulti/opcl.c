@@ -3,7 +3,7 @@
 
 #define MAXSTR 512
 #define MS 500
-#define NANO 1e9 
+#define NANO 1e-6f 
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -107,14 +107,11 @@ int buildProgram() {
 
 void profile_event (cl_event* profiler) {
   cl_ulong start, finish;
-  size_t nano_clocks;
     
-  clGetDeviceInfo(devices[0], CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(size_t), &nano_clocks, NULL);
-  printf("Nano_clock = %ld\n", nano_clocks);
   clWaitForEvents(1, &event);
   if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
   if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
-  printf("Tempo Total = %f\n", (finish-start)*NANO*nano_clocks);
+  printf("Tempo Total = %lfms\n", (finish-start)*NANO);
 }
 
 int opencl_create_program(char* program_path) {
@@ -165,7 +162,7 @@ void prepare_kernel() {
 }
 
 int opencl_run_kernel() {
-  size_t work_dim[2] = { MS, MS };
+  const size_t work_dim[2] = { MS, MS };
   double Mc[MS][MS];
   int i, j;
 
