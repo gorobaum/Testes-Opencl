@@ -58,13 +58,9 @@ int iniciar_opencl() {
 }
 
 int main() {
-  time_t i, f;
-  time(&i);
   if ( iniciar_opencl() == 1 ) {
     printf("Platafoma do OpenCL criada com sucesso, iniciando a multiplicação das matrizes...\n");
     opencl_run_kernel();
   }
-  time(&f);
-  printf("Tempo: %.2lf \n", difftime(f,i));
   return 0;
 }

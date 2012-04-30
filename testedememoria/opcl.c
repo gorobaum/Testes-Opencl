@@ -3,6 +3,7 @@
 
 #define MAXSTR 512
 #define MATRIXSIZE 1000
+#define NANO 1e-6f 
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -58,7 +59,7 @@ int opencl_create_context() {
 }
 
 int opencl_create_queue() {
-  if ( ( queue = clCreateCommandQueue(context, devices[device_used], 0, NULL ) ) != NULL ) {
+  if ( ( queue = clCreateCommandQueue(context, devices[device_used], CL_QUEUE_PROFILING_ENABLE, NULL ) ) != NULL ) {
     return 1;
   }
   else return -1;
