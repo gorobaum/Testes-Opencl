@@ -2,8 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MATRIXSIZE 1000
-#define NANO 1e-6f 
+#define MATRIXSIZE 128
 
 /* Objetos do Open CL */
 cl_platform_id platform;
@@ -59,7 +58,7 @@ int opencl_create_context() {
 }
 
 int opencl_create_queue() {
-  if ( ( queue = clCreateCommandQueue(context, devices[device_used], CL_QUEUE_PROFILING_ENABLE, NULL ) ) != NULL ) {
+  if ( ( queue = clCreateCommandQueue(context, devices[device_used], 0, NULL ) ) != NULL ) {
     return 1;
   }
   else return -1;
@@ -84,52 +83,25 @@ char* loadProgramFromSource(char* program_path, int *size) {
 }
 
 int buildProgram() {
-  int err;
-  char *build_log, **program_binary;
-	size_t ret_val_size, *binary_size, count;
-	FILE *pFile;
+    int err;
+    char *build_log;
+		size_t ret_val_size;
+		
+    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+		if ( err != CL_SUCCESS ) {
+  		clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
-  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-	if ( err != CL_SUCCESS ) {
-  	clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+	  	build_log = malloc((ret_val_size+1)*sizeof(char));
+	  	clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+  		build_log[ret_val_size] = '\0';
 
-	  build_log = malloc((ret_val_size+1)*sizeof(char));
-	  clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
-  	build_log[ret_val_size] = '\0';
-
-	  printf("BUILD LOG: \n %s", build_log);
-    printf("program built\n");
-    return -1;
-  }
-  else {
-    pFile = fopen("opcl.ptx", "w");
-    if (pFile == NULL) {
-      printf("Erro na criação do .ptx\n");
-      exit(-1);
+	  	printf("BUILD LOG: \n %s", build_log);
+      /*printf("program built\n");*/
+      return -1;
     }
-
-    binary_size = malloc(devices_found*sizeof(size_t));
-    clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, devices_found*sizeof(size_t), (void*)binary_size, NULL); 
-    program_binary = malloc(devices_found*sizeof(char*));
-    for (count = 0; count < devices_found; count++) 
-      program_binary[count] = malloc(binary_size[0]*sizeof(char));
-    clGetProgramInfo(program, CL_PROGRAM_BINARIES, count*binary_size[0]*sizeof(char), program_binary, NULL);
-      
-    fputs(program_binary[0], pFile);
-
-    return 1;
-  }
+    else return 1;
 }
 /* Fim das funções auxiliares para a criação do program */
-
-void profile_event (cl_event* profiler) {
-  cl_ulong start, finish;
-    
-  clWaitForEvents(1, &event);
-  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
-  if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
-  printf("Tempo Total = %lfms\n", (finish-start)*NANO);
-}
 
 int opencl_create_program(char* program_path) {
   char* program_source;
@@ -175,7 +147,6 @@ int opencl_run_kernel() {
   
   prepare_kernel();
   clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event); 
-  profile_event(&event);
   clReleaseEvent(event);
   clFinish(queue);
   
