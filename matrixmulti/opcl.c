@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 500
+#define MS 3
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -193,12 +193,12 @@ int opencl_run_kernel() {
   if( clEnqueueReadBuffer(queue, opclMatrixC, CL_TRUE, 0, sizeof(double)*MS*MS, &Mc, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
-  /*for( i = 0; i < MS; i++ ) {
+  for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("%d  ", Mc[i][j]);
     }
     printf("\n");
-  }*/
+  }
 
   return 1;
 }

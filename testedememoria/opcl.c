@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MATRIXSIZE 500
+#define MATRIXSIZE 3
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -84,23 +84,41 @@ char* loadProgramFromSource(char* program_path, int *size) {
 }
 
 int buildProgram() {
-    int err;
-    char *build_log;
-		size_t ret_val_size;
-		
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-		if ( err != CL_SUCCESS ) {
-  		clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+  int err;
+  char *build_log, **program_binary;
+  size_t ret_val_size, *binary_size, count;
+  FILE *pFile;
 
-	  	build_log = malloc((ret_val_size+1)*sizeof(char));
-	  	clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
-  		build_log[ret_val_size] = '\0';
+  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+  if ( err != CL_SUCCESS ) {
+    clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
-	  	printf("BUILD LOG: \n %s", build_log);
-      /*printf("program built\n");*/
-      return -1;
+    build_log = malloc((ret_val_size+1)*sizeof(char));
+    clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+    build_log[ret_val_size] = '\0';
+
+    printf("BUILD LOG: \n %s", build_log);
+    printf("program built\n");
+    return -1;
+  }
+  else {
+    pFile = fopen("opcl.ptx", "w");
+    if (pFile == NULL) {
+      printf("Erro na criação do .ptx\n");
+      exit(-1);
     }
-    else return 1;
+
+    binary_size = malloc(devices_found*sizeof(size_t));
+    clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, devices_found*sizeof(size_t), (void*)binary_size, NULL); 
+    program_binary = malloc(devices_found*sizeof(char*));
+    for (count = 0; count < devices_found; count++) 
+      program_binary[count] = malloc(binary_size[0]*sizeof(char));
+    clGetProgramInfo(program, CL_PROGRAM_BINARIES, count*binary_size[0]*sizeof(char), program_binary, NULL);
+      
+    fputs(program_binary[0], pFile);
+
+    return 1;
+  }
 }
 /* Fim das funções auxiliares para a criação do program */
 
@@ -167,6 +185,11 @@ int opencl_run_kernel() {
   if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(double)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
+  for( i = 0; i < MATRIXSIZE; i++ ) {
+    for( j = 0; j< MATRIXSIZE; j++ ) {
+      printf("B[%d][%d] = %f\n", i, j, MatrixB[i][j]);
+    }
+  }
 
   return 1;
 }
