@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MATRIXSIZE 500
+#define MATRIXSIZE 3
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -135,27 +135,31 @@ int opencl_create_kernel(char* kernel_name) {
 }
 
 void prepare_kernel() {
-  double MatrixA[MATRIXSIZE][MATRIXSIZE];
+  int MatrixA[MATRIXSIZE][MATRIXSIZE];
   int i, j;
+  cl_int error;
 
   for ( i = 0; i < MATRIXSIZE; i++ ) {
     for ( j = 0; j < MATRIXSIZE; j++ ) {
-      MatrixA[i][j] = i+j;
+      MatrixA[i][j] = i+3;
     }
   }
+
   /* Criação dos buffers que o OpenCL vai usar. */
-  opclMatrixA = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double)*MATRIXSIZE*MATRIXSIZE, MatrixA, NULL);
-  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(double)*MATRIXSIZE*MATRIXSIZE, NULL, NULL);
+  opclMatrixA = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int)*MATRIXSIZE*MATRIXSIZE, MatrixA, &error);
+  if (error != CL_SUCCESS) {printf("Erro na memoria\n");}
+  opclMatrixB = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int)*MATRIXSIZE*MATRIXSIZE, NULL, &error);
+  if (error != CL_SUCCESS) {printf("Erro na memoria\n");}
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
-  
+
   clFinish(queue);
 }
 
 int opencl_run_kernel() {
-  size_t work_dim[2] = { MATRIXSIZE, MATRIXSIZE };
-  double MatrixB[MATRIXSIZE][MATRIXSIZE];
+  size_t work_dim[2] = { 3, 3 };
+  int MatrixB[MATRIXSIZE][MATRIXSIZE];
   int i, j;
   
   prepare_kernel();
@@ -164,9 +168,15 @@ int opencl_run_kernel() {
   clReleaseEvent(event);
   clFinish(queue);
 
-  if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(double)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
+  if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(int)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
+
+  for( i = 0; i < MATRIXSIZE; i++ ) {
+    for( j = 0; j< MATRIXSIZE; j++ ) {
+      printf("%d\n", MatrixB[i][j]);
+    }
+  }
 
   return 1;
 }
