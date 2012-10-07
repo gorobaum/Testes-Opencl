@@ -84,23 +84,41 @@ char* loadProgramFromSource(char* program_path, int *size) {
 }
 
 int buildProgram() {
-    int err;
-    char *build_log;
-		size_t ret_val_size;
-		
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-		if ( err != CL_SUCCESS ) {
-  		clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
+  int err;
+  char *build_log, **program_binary;
+  size_t ret_val_size, *binary_size, count;
+  FILE *pFile;
 
-	  	build_log = malloc((ret_val_size+1)*sizeof(char));
-	  	clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
-  		build_log[ret_val_size] = '\0';
+  err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+  if ( err != CL_SUCCESS ) {
+    clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 
-	  	printf("BUILD LOG: \n %s", build_log);
-      /*printf("program built\n");*/
-      return -1;
+    build_log = malloc((ret_val_size+1)*sizeof(char));
+    clGetProgramBuildInfo(program, devices[device_used], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
+    build_log[ret_val_size] = '\0';
+
+    printf("BUILD LOG: \n %s", build_log);
+    printf("program built\n");
+    return -1;
+  }
+  else {
+    pFile = fopen("opcl.ptx", "w");
+    if (pFile == NULL) {
+      printf("Erro na criação do .ptx\n");
+      exit(-1);
     }
-    else return 1;
+
+    binary_size = malloc(devices_found*sizeof(size_t));
+    clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, devices_found*sizeof(size_t), (void*)binary_size, NULL); 
+    program_binary = malloc(devices_found*sizeof(char*));
+    for (count = 0; count < devices_found; count++) 
+      program_binary[count] = malloc(binary_size[0]*sizeof(char));
+    clGetProgramInfo(program, CL_PROGRAM_BINARIES, count*binary_size[0]*sizeof(char), program_binary, NULL);
+      
+    fputs(program_binary[0], pFile);
+
+    return 1;
+  }
 }
 /* Fim das funções auxiliares para a criação do program */
 
@@ -136,11 +154,11 @@ int opencl_create_kernel(char* kernel_name) {
 
 void prepare_kernel() {
   float MatrixA[MATRIXSIZE][MATRIXSIZE];
-  int i, j, size;
+  int i, j, sizeC, sizeR;
   cl_int error;
-  cl_mem rowSize;
+  cl_mem rowSize, columnSize;
 
-  size = MATRIXSIZE;
+  sizeC = sizeR = MATRIXSIZE;
 
   for ( i = 0; i < MATRIXSIZE; i++ ) {
     for ( j = 0; j < MATRIXSIZE; j++ ) {
@@ -153,12 +171,15 @@ void prepare_kernel() {
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
   opclMatrixB = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*MATRIXSIZE*MATRIXSIZE, NULL, &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
-  rowSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&size), &error);
+  rowSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeR), &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  columnSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeC), &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
   clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&rowSize);
+  clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&columnSize);
 
   clFinish(queue);
 }
