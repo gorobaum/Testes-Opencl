@@ -114,7 +114,6 @@ int buildProgram() {
     for (count = 0; count < devices_found; count++) 
       program_binary[count] = malloc(binary_size[0]*sizeof(char));
     clGetProgramInfo(program, CL_PROGRAM_BINARIES, count*binary_size[0]*sizeof(char), program_binary, NULL);
-      
     fputs(program_binary[0], pFile);
 
     return 1;
@@ -171,9 +170,9 @@ void prepare_kernel() {
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
   opclMatrixB = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*MATRIXSIZE*MATRIXSIZE, NULL, &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
-  rowSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeR), &error);
+  rowSize = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), (&sizeR), &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
-  columnSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeC), &error);
+  columnSize = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), (&sizeC), &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
