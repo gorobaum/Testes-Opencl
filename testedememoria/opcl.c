@@ -153,27 +153,40 @@ int opencl_create_kernel(char* kernel_name) {
 }
 
 void prepare_kernel() {
-  double MatrixA[MATRIXSIZE][MATRIXSIZE];
-  int i, j;
+  float MatrixA[MATRIXSIZE][MATRIXSIZE];
+  int i, j, sizeC, sizeR;
+  cl_int error;
+  cl_mem rowSize, columnSize;
+
+  sizeC = sizeR = MATRIXSIZE;
 
   for ( i = 0; i < MATRIXSIZE; i++ ) {
     for ( j = 0; j < MATRIXSIZE; j++ ) {
       MatrixA[i][j] = i+j;
     }
   }
+
   /* Criação dos buffers que o OpenCL vai usar. */
-  opclMatrixA = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(double)*MATRIXSIZE*MATRIXSIZE, MatrixA, NULL);
-  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(double)*MATRIXSIZE*MATRIXSIZE, NULL, NULL);
+  opclMatrixA = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*MATRIXSIZE*MATRIXSIZE, MatrixA, &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  opclMatrixB = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*MATRIXSIZE*MATRIXSIZE, NULL, &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  rowSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeR), &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  columnSize = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), (&sizeC), &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
 
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
-  
+  clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&rowSize);
+  clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&columnSize);
+
   clFinish(queue);
 }
 
 int opencl_run_kernel() {
   size_t work_dim[2] = { MATRIXSIZE, MATRIXSIZE };
-  double MatrixB[MATRIXSIZE][MATRIXSIZE];
+  float MatrixB[MATRIXSIZE][MATRIXSIZE];
   int i, j;
   
   prepare_kernel();
@@ -182,7 +195,7 @@ int opencl_run_kernel() {
   clReleaseEvent(event);
   clFinish(queue);
 
-  if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(double)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
+  if( clEnqueueReadBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(float)*MATRIXSIZE*MATRIXSIZE, &MatrixB, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
   for( i = 0; i < MATRIXSIZE; i++ ) {
@@ -190,7 +203,6 @@ int opencl_run_kernel() {
       printf("B[%d][%d] = %f\n", i, j, MatrixB[i][j]);
     }
   }
-
   return 1;
 }
 
