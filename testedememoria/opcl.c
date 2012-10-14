@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MATRIXSIZE 500
+#define MATRIXSIZE 1000
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -187,7 +187,7 @@ int opencl_run_kernel() {
   size_t work_dim[2] = { MATRIXSIZE, MATRIXSIZE };
   float MatrixB[MATRIXSIZE][MATRIXSIZE];
   int i, j;
-  
+
   prepare_kernel();
   clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
   profile_event(&event);
@@ -198,11 +198,11 @@ int opencl_run_kernel() {
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
 
-  for( i = 0; i < MATRIXSIZE; i++ ) {
+  /*for( i = 0; i < MATRIXSIZE; i++ ) {
     for( j = 0; j< MATRIXSIZE; j++ ) {
       printf("B[%d][%d] = %f\n", i, j, MatrixB[i][j]);
     }
-  }
+  }*/
 
   return 1;
 }

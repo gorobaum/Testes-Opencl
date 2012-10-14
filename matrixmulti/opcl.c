@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 3
+#define MS 500
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -155,6 +155,7 @@ int opencl_create_kernel(char* kernel_name) {
 void prepare_kernel() {
   float MatrixA[MS][MS], MatrixB[MS][MS];
   int i, j, size;
+  cl_int error;
   cl_mem matrix_size;
 
   for ( i = 0; i < MS; i++ ) {
@@ -166,10 +167,14 @@ void prepare_kernel() {
   size = MS;
 
   /* Criação dos buffers que o OpenCL vai usar. */
-  opclMatrixA = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixA, NULL);
-  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixB, NULL);
-  opclMatrixC = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float)*MS*MS, NULL, NULL);
-  matrix_size = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(int), (&size), NULL);
+  opclMatrixA = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixA, &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixB, &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  opclMatrixC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*MS*MS, NULL, &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
+  matrix_size = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), (&size), &error);
+  if (error != CL_SUCCESS) printf("Erro na memoria\n");
   
   clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&opclMatrixA);
   clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&opclMatrixB);
@@ -180,12 +185,12 @@ void prepare_kernel() {
 }
 
 int opencl_run_kernel() {
-  const size_t work_dim[2] = { MS, MS };
+  size_t work_dim[2] = { MS, MS };
   float Mc[MS][MS];
   int i, j;
 
   prepare_kernel();
-  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, work_dim, 0, NULL, &event);
+  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
   profile_event(&event);
   clReleaseEvent(event);
   clFinish(queue);
@@ -193,6 +198,7 @@ int opencl_run_kernel() {
   if( clEnqueueReadBuffer(queue, opclMatrixC, CL_TRUE, 0, sizeof(float)*MS*MS, &Mc, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
+
   for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("C[%d][%d] = %f\n", i, j, Mc[i][j]);
