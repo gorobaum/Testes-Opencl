@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 500
+#define MS 512
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -24,11 +24,10 @@ unsigned int opencl_create_platform(unsigned int num_platforms) {
   int num_platforms_found;
   
   clGetPlatformIDs( 0, NULL, &num_platforms_found);
-  printf("Num Plat == %d\n\n", num_platforms_found); 
   if ( clGetPlatformIDs( num_platforms, &platform, &num_platforms_found ) == CL_SUCCESS ) {
-    /* As duas linhas abaixo são usadas para teste. */
+    /* As duas linhas abaixo são usadas para teste.
     clGetPlatformInfo( platform, CL_PLATFORM_NAME, MAXSTR, &name, NULL );
-    printf("Nome da plataforma %s\n",name);  
+    printf("Nome da plataforma %s\n",name);  */
     return num_platforms_found;
   }
   else return -1;
@@ -129,7 +128,7 @@ void profile_event (cl_event* profiler) {
   clWaitForEvents(1, &event);
   if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, (size_t)sizeof(cl_ulong), &start, NULL) != CL_SUCCESS) printf("Erro!\n");
   if (clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, (size_t)sizeof(cl_ulong), &finish, NULL) != CL_SUCCESS) printf("Erro!\n");
-  printf("Tempo Total = %lfms\n", (finish-start)*NANO);
+  printf("%lf\n", (finish-start)*NANO);
 }
 
 int opencl_create_program(char* program_path) {
@@ -199,11 +198,11 @@ int opencl_run_kernel() {
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
 
-  for( i = 0; i < MS; i++ ) {
-    for( j = 0; j< MS; j++ ) {
-      printf("C[%d][%d] = %f\n", i, j, Mc[i][j]);
-    }
-  }
+  // for( i = 0; i < MS; i++ ) {
+  //   for( j = 0; j< MS; j++ ) {
+  //     printf("C[%d][%d] = %f\n", i, j, Mc[i][j]);
+  //   }
+  // }
 
   return 1;
 }
