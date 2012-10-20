@@ -1,9 +1,9 @@
-__kernel void matrixmulti(__global int* a, __global int* b, __global int* c, __global int* size)
+__kernel void matrixmulti(__global float* MatrixA, __global float* MatrixB, __global float* MatrixC, __global int* N)
 {
-    unsigned row = get_global_id(0);
-    unsigned column = get_global_id(1);
-    unsigned i;
-    row *= (*size);
-    c[row+column] = 0;
-    for( i = 0; i < (*size); i++ ) c[row+column] += a[row+i]*b[i*(*size)+column];
+    unsigned i = get_global_id(0);
+    unsigned j = get_global_id(1);
+    unsigned k;
+    MatrixC[i*(*N)+j] = 0;
+    for( k = 0; k < (*N); k++ ) 
+    	MatrixC[i*(*N)+j] += MatrixA[i*(*N)+k]*MatrixB[j+k*(*N)];
 }

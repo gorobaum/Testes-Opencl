@@ -10,6 +10,7 @@ get_directory_property(includes INCLUDE_DIRECTORIES)
 message("${includes}\n")
 
 ADD_DEFINITIONS(-DCL_SOURCE_DIR="${matrixmulti_SOURCE_DIR}")
+set(CMAKE_CXX_FLAGS "-g")
 
 set(multilib opcl.c)
 set(opcllib matrixmulti)
