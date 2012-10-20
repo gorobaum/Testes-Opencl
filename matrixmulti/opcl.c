@@ -185,6 +185,8 @@ void prepare_kernel() {
   clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&matrix_size);
 
   clFinish(queue);
+  free(MatrixA);
+  free(MatrixB);
 }
 
 int opencl_run_kernel() {
@@ -204,12 +206,12 @@ int opencl_run_kernel() {
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
 
-/*  for( i = 0; i < MS; i++ ) {
+  /*for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("C[%d][%d] = %f\n", i, j, Mc[i*MS+j]);
     }
   }*/
-
+  free(Mc);
   return 1;
 }
 
