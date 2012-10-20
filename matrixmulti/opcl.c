@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 512
-#define MS 512
+#define MS 1024
 #define NANO 1e-6f 
 
 /* Objetos do Open CL */
@@ -14,6 +14,7 @@ cl_kernel kernel;
 cl_program program;
 cl_event event;
 cl_mem opclMatrixA, opclMatrixB, opclMatrixC;
+size_t sizeOfMatrix = sizeof(float)*MS*MS;
 
 /* Informações sobre os devices */
 unsigned int devices_found;
@@ -152,25 +153,28 @@ int opencl_create_kernel(char* kernel_name) {
 }
 
 void prepare_kernel() {
-  float MatrixA[MS][MS], MatrixB[MS][MS];
+  float* MatrixA, *MatrixB;
   int i, j, size;
   cl_int error;
   cl_mem matrix_size;
 
+  MatrixA = malloc(sizeOfMatrix);
+  MatrixB = malloc(sizeOfMatrix);
+
   for ( i = 0; i < MS; i++ ) {
     for ( j = 0; j < MS; j++ ) {
-      MatrixA[i][j] = i+j;
-      MatrixB[i][j] = 2.0;
+      MatrixA[i*MS+j] = i+j;
+      MatrixB[i*MS+j] = 2.0;
     }
   }
   size = MS;
 
   /* Criação dos buffers que o OpenCL vai usar. */
-  opclMatrixA = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixA, &error);
+  opclMatrixA = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeOfMatrix, MatrixA, &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
-  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*MS*MS, MatrixB, &error);
+  opclMatrixB = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeOfMatrix, MatrixB, &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
-  opclMatrixC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*MS*MS, NULL, &error);
+  opclMatrixC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOfMatrix, NULL, &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
   matrix_size = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int), (&size), &error);
   if (error != CL_SUCCESS) printf("Erro na memoria\n");
@@ -185,8 +189,10 @@ void prepare_kernel() {
 
 int opencl_run_kernel() {
   size_t work_dim[2] = { MS, MS };
-  float Mc[MS][MS];
+  float* Mc;
   int i, j;
+
+  Mc = malloc(sizeOfMatrix);
 
   prepare_kernel();
   clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
@@ -194,15 +200,15 @@ int opencl_run_kernel() {
   clReleaseEvent(event);
   clFinish(queue);
 
-  if( clEnqueueReadBuffer(queue, opclMatrixC, CL_TRUE, 0, sizeof(float)*MS*MS, &Mc, 0, NULL, &event) 
+  if( clEnqueueReadBuffer(queue, opclMatrixC, CL_TRUE, 0, sizeof(float)*MS*MS, Mc, 0, NULL, &event) 
       == CL_INVALID_VALUE ) printf("ERRROROOO\n");
   clReleaseEvent(event);
 
-  // for( i = 0; i < MS; i++ ) {
-  //   for( j = 0; j< MS; j++ ) {
-  //     printf("C[%d][%d] = %f\n", i, j, Mc[i][j]);
-  //   }
-  // }
+/*  for( i = 0; i < MS; i++ ) {
+    for( j = 0; j< MS; j++ ) {
+      printf("C[%d][%d] = %f\n", i, j, Mc[i*MS+j]);
+    }
+  }*/
 
   return 1;
 }
