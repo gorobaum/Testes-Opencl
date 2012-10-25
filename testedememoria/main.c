@@ -25,7 +25,7 @@ int iniciar_opencl() {
     return -1;
   }
 
-  if ( opencl_create_program("matrixmulti.cl") <= 0 ) {
+  if ( opencl_create_program("/home/thiago/repositorios/testesopencl/testedememoria/matrixmulti.cl") <= 0 ) {
     printf("Erro na criação do programa\n");
     return -1;
   }
