@@ -183,7 +183,7 @@ void prepare_kernel() {
   
   clEnqueueWriteBuffer(queue, opclMatrixA, CL_TRUE, 0, sizeOfMatrix, MatrixA, 0, NULL, &event);
   profile_event(&event);
-  clEnqueueWriteBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeof(int), MatrixB, 0, NULL, &event);
+  clEnqueueWriteBuffer(queue, opclMatrixB, CL_TRUE, 0, sizeOfMatrix, MatrixB, 0, NULL, &event);
   profile_event(&event);
   clEnqueueWriteBuffer(queue, matrix_size, CL_TRUE, 0, sizeof(int), &size, 0, NULL, &event);
   profile_event(&event);
@@ -200,13 +200,14 @@ void prepare_kernel() {
 
 int opencl_run_kernel() {
   size_t work_dim[2] = { MS, MS };
+  size_t local_dim[2] = { 16, 16 };
   float* Mc;
   int i, j;
 
   Mc = malloc(sizeOfMatrix);
 
   prepare_kernel();
-  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
+  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, local_dim, 0, NULL, &event);
   profile_event(&event);
   clReleaseEvent(event);
   clFinish(queue);
@@ -216,11 +217,12 @@ int opencl_run_kernel() {
   profile_event(&event);
   clReleaseEvent(event);
 
-  /*for( i = 0; i < MS; i++ ) {
+/*  for( i = 0; i < MS; i++ ) {
     for( j = 0; j< MS; j++ ) {
       printf("C[%d][%d] = %f\n", i, j, Mc[i*MS+j]);
     }
   }*/
+  
   printf("%lf\n", total*NANO);
   free(Mc);
   return 1;

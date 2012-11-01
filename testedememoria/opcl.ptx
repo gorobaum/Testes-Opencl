@@ -23,32 +23,16 @@
 	ld.param.u32 	%r9, [matrixmulti_param_0];
 	ld.param.u32 	%r10, [matrixmulti_param_1];
 	ld.param.u32 	%r11, [matrixmulti_param_2];
-	// inline asm
 	mov.u32 	%r1, %envreg3;
-	// inline asm
-	// inline asm
 	mov.u32 	%r2, %ntid.x;
-	// inline asm
-	// inline asm
 	mov.u32 	%r3, %ctaid.x;
-	// inline asm
-	// inline asm
 	mov.u32 	%r4, %tid.x;
-	// inline asm
 	add.s32 	%r12, %r4, %r1;
 	mad.lo.s32 	%r13, %r3, %r2, %r12;
-	// inline asm
 	mov.u32 	%r5, %envreg4;
-	// inline asm
-	// inline asm
 	mov.u32 	%r6, %ntid.y;
-	// inline asm
-	// inline asm
 	mov.u32 	%r7, %ctaid.y;
-	// inline asm
-	// inline asm
 	mov.u32 	%r8, %tid.y;
-	// inline asm
 	add.s32 	%r14, %r8, %r5;
 	mad.lo.s32 	%r15, %r7, %r6, %r14;
 	ld.global.u32 	%r16, [%r11];

@@ -2,7 +2,7 @@
 #include "opcl.h"
 
 #define MAXSTR 128
-#define MATRIXSIZE 8192
+#define MATRIXSIZE 4096
 #define NANO 1e-6f
 
 /* Objetos do Open CL */
@@ -197,13 +197,14 @@ void prepare_kernel() {
 
 int opencl_run_kernel() {
   size_t work_dim[2] = { MATRIXSIZE, MATRIXSIZE };
+  size_t local_dim[2] = { 16, 16 };
   float *MatrixB;
   int i, j;
 
   MatrixB = malloc(sizeOfMatrix);
 
   prepare_kernel();
-  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, NULL, 0, NULL, &event);
+  clEnqueueNDRangeKernel(queue, kernel, 2, NULL, work_dim, local_dim, 0, NULL, &event);
   profile_event(&event);
   clReleaseEvent(event);
   clFinish(queue);
@@ -218,6 +219,7 @@ int opencl_run_kernel() {
       printf("B[%d][%d] = %f\n", i, j, MatrixB[i*MATRIXSIZE+j]);
     }
   }*/
+
   printf("%lf\n", total*NANO);
   free(MatrixB);
   return 1;
