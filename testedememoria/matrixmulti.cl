@@ -2,5 +2,5 @@ __kernel void matrixmulti(__global float* a, __global float* b, __global int* ro
 {
     unsigned int row = get_global_id(0);
     unsigned int column = get_global_id(1);
-	b[row+column*(*rowSize)] = a[row+column*(*rowSize)];
+	b[row+column*(*columnSize)] = a[row+column*(*columnSize)];
 }

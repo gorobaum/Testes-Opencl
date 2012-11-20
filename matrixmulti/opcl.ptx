@@ -23,16 +23,32 @@
 
 	ld.param.u32 	%r3, [matrixmulti_param_2];
 	ld.param.u32 	%r4, [matrixmulti_param_3];
+	// inline asm
 	mov.u32 	%r12, %envreg3;
+	// inline asm
+	// inline asm
 	mov.u32 	%r13, %ntid.x;
+	// inline asm
+	// inline asm
 	mov.u32 	%r14, %ctaid.x;
+	// inline asm
+	// inline asm
 	mov.u32 	%r15, %tid.x;
+	// inline asm
 	add.s32 	%r20, %r15, %r12;
 	mad.lo.s32 	%r5, %r14, %r13, %r20;
+	// inline asm
 	mov.u32 	%r16, %envreg4;
+	// inline asm
+	// inline asm
 	mov.u32 	%r17, %ntid.y;
+	// inline asm
+	// inline asm
 	mov.u32 	%r18, %ctaid.y;
+	// inline asm
+	// inline asm
 	mov.u32 	%r19, %tid.y;
+	// inline asm
 	add.s32 	%r21, %r19, %r16;
 	mad.lo.s32 	%r6, %r18, %r17, %r21;
 	ld.global.u32 	%r22, [%r4];
@@ -78,4 +94,4 @@ BB0_3:
 
 ;
 }
-!
+a
