@@ -4,7 +4,7 @@
 
 int iniciar_opencl() {
   unsigned int num_platforms, num_devices;
-
+  puts("macaco");
   if ( ( num_platforms =  opencl_create_platform(1)  ) <= 0 ) {
       printf("Erro na criação da camada de plataforma!\n");
       return -1; 

@@ -4,7 +4,7 @@ project(memory)
 find_library(OPENCL OpenCL)
 message("OpenCL Library == ${OPENCL}")
 
-
+include_directories(~/repositorios/Testes-Opencl/opencl10)
 message("include directories: \n")
 get_directory_property(includes INCLUDE_DIRECTORIES)
 message("${includes}\n")
