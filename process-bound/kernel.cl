@@ -1,4 +1,4 @@
-__kernel void matrixmulti(__global float* MatrixA, __global float* MatrixB, __global float* MatrixC, __global int* N)
+__kernel void processbound(__global float* MatrixA, __global float* MatrixB, __global float* MatrixC, __global int* N)
 {
     unsigned i = get_global_id(0);
     unsigned j = get_global_id(1);

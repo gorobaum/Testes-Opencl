@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include "opcl.h"
+#include <time.h>
 
 int iniciar_opencl() {
   unsigned int num_platforms, num_devices;
-  
-  if ( ( num_platforms =  opencl_create_platform(2)  ) <= 0 ) {
+
+  if ( ( num_platforms =  opencl_create_platform(1)  ) <= 0 ) {
       printf("Erro na criação da camada de plataforma!\n");
       return -1; 
   }
@@ -24,12 +25,12 @@ int iniciar_opencl() {
     return -1;
   }
 
-  if ( opencl_create_program("/home/thiago/repositorios/testesopencl/matrixmulti/matrixmulti.cl") <= 0 ) {
+  if ( opencl_create_program("kernel.cl") <= 0 ) {
     printf("Erro na criação do programa\n");
     return -1;
   }
 
-  if ( opencl_create_kernel("matrixmulti") <= 0 ) {
+  if ( opencl_create_kernel("memorybound") <= 0 ) {
     printf("Erro na criação do kernel\n");
     return -1;
   }
@@ -38,7 +39,6 @@ int iniciar_opencl() {
 }
 
 int main() {
-  
   if ( iniciar_opencl() == 1 ) {
     opencl_run_kernel();
   }
